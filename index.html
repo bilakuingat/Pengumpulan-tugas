@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENGUMPULAN TUGAS LKPD ANALISIS DATA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #loading {
+            text-align: center;
+            display: none;
+            color: #007BFF;
+            margin-top: 10px;
+        }
+        #responseMessage {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>PENGUMPULAN TUGAS LKPD ANALISIS DATA</h2>
+    <form id="uploadForm">
+        <div class="form-group">
+            <label for="studentName">Nama Lengkap:</label>
+            <input type="text" id="studentName" name="studentName" required placeholder="Masukkan nama Anda">
+        </div>
+        <div class="form-group">
+            <label for="studentClass">Kelas:</label>
+            <input type="text" id="studentClass" name="studentClass" required placeholder="Contoh: XI IPA 1">
+        </div>
+        <div class="form-group">
+            <label for="fileField">Pilih File Tugas:</label>
+            <input type="file" id="fileField" name="fileField" required>
+        </div>
+        <button type="submit" id="submitBtn">Kirim Tugas</button>
+    </form>
+    <div id="loading">Sedang mengunggah, mohon tunggu...</div>
+    <div id="responseMessage"></div>
+</div>
+
+<script>
+    // Masukkan URL Web App Google Apps Script Anda di bawah ini
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxt2_QcCqHJsL1dA3q_8G0qpyjA2WuYOlyzDcayZdNR1-akxvUequi1FMKBRkJVxHtv7Q/exec";
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const responseMessage = document.getElementById('responseMessage');
+        
+        const studentName = document.getElementById('studentName').value;
+        const studentClass = document.getElementById('studentClass').value;
+        const fileInput = document.getElementById('fileField');
+
+        if (fileInput.files.length === 0) {
+            alert("Pilih file terlebih dahulu!");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        submitBtn.disabled = true;
+        loading.style.display = 'block';
+        responseMessage.textContent = '';
+
+        reader.onload = function(e) {
+            const base64Data = e.target.result.split(',')[1];
+            const payload = {
+                studentName: studentName,
+                studentClass: studentClass,
+                fileName: file.name,
+                mimeType: file.type,
+                fileData: base64Data
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                responseMessage.style.color = 'green';
+                responseMessage.textContent = 'Tugas berhasil dikirim!';
+                document.getElementById('uploadForm').reset();
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                responseMessage.style.color = 'red';
+                responseMessage.textContent = 'Terjadi kesalahan saat mengunggah.';
+                console.error('Error:', error);
+            });
+        };
+
+        reader.readAsDataURL(file);
+    });
+</script>
+
+</body>
+</html>
